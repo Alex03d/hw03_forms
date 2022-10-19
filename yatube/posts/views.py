@@ -27,6 +27,7 @@ def login_required(
         return actual_decorator(function)
     return actual_decorator
 
+
 def index(request):
     post_list = Post.objects.all().order_by('-pub_date')
     paginator = Paginator(post_list, 10)
@@ -37,6 +38,7 @@ def index(request):
         'page_obj': page_obj,
     }
     return render(request, 'posts/index.html', context)
+
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
@@ -53,6 +55,7 @@ def profile(request, username):
     }
     return render(request, 'posts/profile.html', context)
 
+
 def post_detail(request, post_id):
     # Здесь код запроса к модели и создание словаря контекста
     post_info = get_object_or_404(Post, pk=post_id)
@@ -68,6 +71,7 @@ def post_detail(request, post_id):
     }
     return render(request, 'posts/post_detail.html', context)
 
+
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
     posts = group.posts.all()
@@ -82,6 +86,7 @@ def group_posts(request, slug):
         'page_obj': page_obj
     }
     return render(request, 'posts/group_list.html', context)
+
 
 @login_required
 @csrf_protect
@@ -100,6 +105,7 @@ def post_create(request):
     else:
         form = PostForm()
     return render(request, template, {'form': form})
+
 
 @login_required
 def post_edit(request, post_id):
