@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
 
-from django.contrib.auth.decorators import user_passes_test, REDIRECT_FIELD_NAME
+from django.contrib.auth.decorators import user_passes_test, \
+    REDIRECT_FIELD_NAME
 
 from django.views.decorators.csrf import csrf_protect
 
@@ -11,12 +12,17 @@ from .models import Post, Group, User
 from .forms import PostForm
 
 
-def login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
+def login_required(
+        function=None,
+        redirect_field_name=REDIRECT_FIELD_NAME,
+        login_url=None
+):
     actual_decorator = user_passes_test(
         lambda u: u.is_authenticated,
         login_url=login_url,
         redirect_field_name=redirect_field_name
     )
+
     if function:
         return actual_decorator(function)
     return actual_decorator
@@ -26,6 +32,7 @@ def index(request):
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     context = {
         'page_obj': page_obj,
     }
@@ -38,6 +45,7 @@ def profile(request, username):
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     context = {
         'author': author,
         'page_obj': page_obj,
@@ -51,6 +59,7 @@ def post_detail(request, post_id):
     post_id = post_id
     author_posts = post_info.author
     author_count = post_info.author.posts.count()
+
     context = {
         'post_info': post_info,
         'author_posts': author_posts,
@@ -66,6 +75,7 @@ def group_posts(request, slug):
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     context = {
         'group': group,
         'posts': posts,
@@ -80,6 +90,7 @@ def post_create(request):
     user = request.user
     if request.method == 'POST':
         form = PostForm(request.POST)
+
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
