@@ -4,31 +4,30 @@ from django.views.decorators.csrf import csrf_protect
 
 from .forms import PostForm
 from .models import Group, Post, User
-from .utils import fuck_paginator
+from .utils import external_paginator
 
 
 def index(request):
-    post_list = Post.objects.all().select_related('group', 'author')
+    post_list = Post.objects.select_related('group', 'author')
 
     context = {
-        'page_obj': fuck_paginator(request, post_list),
+        'page_obj': external_paginator(request, post_list),
     }
     return render(request, 'posts/index.html', context)
 
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    post_list = Post.objects.filter(author=author)
+    post_list = author.posts.all()
 
     context = {
         'author': author,
-        'page_obj': fuck_paginator(request, post_list),
+        'page_obj': external_paginator(request, post_list),
     }
     return render(request, 'posts/profile.html', context)
 
 
 def post_detail(request, post_id):
-    # Здесь код запроса к модели и создание словаря контекста
     post_info = get_object_or_404(Post, pk=post_id)
 
     context = {
@@ -44,7 +43,7 @@ def group_posts(request, slug):
 
     context = {
         'group': group,
-        'page_obj': fuck_paginator(request, post_list),
+        'page_obj': external_paginator(request, post_list),
     }
     return render(request, 'posts/group_list.html', context)
 
@@ -60,7 +59,6 @@ def post_create(request):
             post = form.save(commit=False)
             post.author = request.user
             post.save()
-            # form.save(author_id=user.id)
             return redirect('posts:profile', user.username)
     else:
         form = PostForm()
