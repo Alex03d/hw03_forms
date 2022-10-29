@@ -10,42 +10,94 @@ class PostURLTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='auth')
+        cls.author_post = User.objects.create_user(username='author_post')
+        cls.simple_user = User.objects.create_user(username='simple_user')
         cls.group = Group.objects.create(
-            title='Тестовая группа',
+            title='Тестовая гурппа',
             slug='test-slug',
             description='Тестовое описание',
         )
         cls.post = Post.objects.create(
-            author=cls.user,
-            text='Тестовый пост',
-        )
+            author=cls.author_post,
+            text='Текстовый пост',
+    )
 
     def setUp(self):
         self.guest_client = Client()
         self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
+        self.authorized_client.force_login(PostURLTest.simple_user)
         self.author_post = Client()
-        self.admin = PostURLTest.user
-        self.author_post.force_login(self.admin)
-        # self.user = User.objects.create_user(username='HasNoName')
+        self.author_post.force_login(PostURLTest.author_post)
 
-    def test_urls_uses_correct_template(self):
-        """URL-адрес использует соответствующий шаблон."""
-        # Адреса и их шаблоны
+    def test_urls_uses_correct_template_authorized(self):
         url_templates_names = {
             '/': 'posts/index.html',
             f'/group/{self.group.slug}/': 'posts/group_list.html',
-            '/profile/auth/': 'posts/profile.html',
+            f'/profile/{self.post.author}/': 'posts/profile.html',
             '/create/': 'posts/create_post.html',
             f'/posts/{PostURLTest.post.id}/': 'posts/post_detail.html',
-            f'/posts/{PostURLTest.post.id}/edit/': 'posts/create_post.html'
+            # f'/posts/{PostURLTest.post.id}/edit/': 'posts/post_detail.html'
         }
 
         for address, template in url_templates_names.items():
             with self.subTest(address=address):
                 response = self.authorized_client.get(address)
                 self.assertTemplateUsed(response, template)
+
+    # def test_urls_uses_correct_template_guest(self):
+    #     """URL-адрес использует соответствующий шаблон."""
+    #     url_templates_names = {
+    #         '/': 'posts/index.html',
+    #         f'/group/{self.group.slug}/': 'posts/group_list.html',
+    #         f'/profile/{self.post.author}/': 'posts/profile.html',
+    #         f'/posts/{PostURLTest.post.id}/': 'posts/post_detail.html',
+    #         # f'/posts/{PostURLTest.post.id}/edit/': 'users/signup.html',
+    #     }
+    #
+    #     for address, template in url_templates_names.items():
+    #         with self.subTest(address=address):
+    #             response = self.guest_client.get(address)
+    #             self.assertTemplateUsed(response, template)
+
+    def test_urls_uses_correct_template_redirects(self):
+        """URL-адрес использует соответствующий шаблон."""
+        url_templates_names = {
+            '/create/': '/auth/login/?next=/create/',
+            f'/posts/{PostURLTest.post.id}/edit/': '/auth/login/?next=/create/',
+        }
+
+        for address, template in url_templates_names.items():
+            with self.subTest(address=address):
+                response = self.guest_client.get(address)
+                self.assertRedirects(response, template)
+
+    # def test_urls_uses_correct_template_redirects(self):
+    #     """URL-адрес использует соответствующий шаблон."""
+    #     url_templates_names = {
+    #         f'/posts/{PostURLTest.post.id}/edit/': f'/post/{PostURLTest.post.id}/',
+    #     }
+    #
+    #     for address, template in url_templates_names.items():
+    #         with self.subTest(address=address):
+    #             response = self.guest_client.get(address)
+    #             self.assertRedirects(response, template)
+
+    # def test_task_list_url_redirect_anonymous_on_admin_login(self):
+    #     """Страница по адресу /task/ перенаправит анонимного
+    #     пользователя на страницу логина.
+    #     """
+    #     response = self.guest_client.get(f'/posts/{PostURLTest.post.id}/edit/', follow=True)
+    #     self.assertRedirects(
+    #         response, '/auth/login/?next=/create/',
+    #     )
+
+    # def test_task_detail_url_redirect_anonymous_on_admin_login(self):
+    #     """Страница по адресу /task/test_slug/ перенаправит анонимного
+    #     пользователя на страницу логина.
+    #     """
+    #     response = self.client.get('/task/test-slug/', follow=True)
+    #     self.assertRedirects(
+    #         response, ('/admin/login/?next=/task/test-slug/'))
 
 #     def test_home_url_exists_at_desired_location(self):
 #         response = self.guest_client.get('/')
