@@ -1,4 +1,3 @@
-# deals/tests/test_views.py
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -31,16 +30,13 @@ class PostURLTest(TestCase):
         self.author_post = Client()
         self.author_post.force_login(PostURLTest.author_post)
 
-    # Проверяем используемые шаблоны
     def test_pages_uses_correct_template(self):
-        """URL-адрес использует соответствующий шаблон."""
-        # Собираем в словарь пары "имя_html_шаблона: reverse(name)"
         templates_pages_names = {
             'posts/index.html': reverse('posts:index'),
-            'posts/group_list.html': reverse('posts:group_list'),
-            'posts/profile.html': reverse('posts:profile'),
-            'posts/post_detail.html': reverse('posts:post_detail'),
-            'posts/create_post.html': reverse('posts:post_edit'),
+            'posts/group_list.html': reverse('posts:group_posts', kwargs={'slug': 'test-slug'}),
+            'posts/profile.html': reverse('posts:profile', kwargs={'username': 'username'}),
+            'posts/post_detail.html': reverse('posts:post_detail', kwargs={'post_id': self.post.id}),
+            'posts/create_post.html': reverse('posts:post_edit', kwargs={'post_id': self.post.id}),
             'posts/create_post.html': reverse('posts:create_post'),
             # 'deals/task_detail.html': (
             #     reverse('deals:task_detail', kwargs={'slug': 'test-slug'})
